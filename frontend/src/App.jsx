@@ -6,135 +6,186 @@ import Workspace from './Workspace.jsx';
 function App() {
   const [user, setUser] = useState(null);
   const [showRegister, setShowRegister] = useState(false);
-  const [joinRoomId, setJoinRoomId] = useState('');
   const [activeDocumentId, setActiveDocumentId] = useState(null);
+  
+  // Role Selection State
+  const [handle, setHandle] = useState('');
+  const [roomId, setRoomId] = useState('');
+  const [role, setRole] = useState('Candidate');
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleLogin = (userData) => {
     setUser(userData);
+    setHandle(userData.username); 
+    setShowRoleSelection(true);
   };
 
   const handleLogout = () => {
     setUser(null);
     setActiveDocumentId(null);
+    setShowRoleSelection(false);
     localStorage.removeItem('token');
   };
 
-  const handleJoinRoom = (e) => {
-      e.preventDefault();
-      if (joinRoomId.trim()) {
-          setActiveDocumentId(joinRoomId.trim());
+  const handleGenerateId = () => {
+      const newRoomId = 'interview-' + Math.random().toString(36).substring(2, 6);
+      setRoomId(newRoomId);
+  };
+
+  const handleJoinSession = async (e) => {
+    e.preventDefault();
+    if (!handle.trim() || !roomId.trim()) return;
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // Hit the new join endpoint to get a fresh token with role and handle
+      const response = await fetch('https://axlero-backend-1.onrender.com/api/auth/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ handle, role, roomId }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        localStorage.setItem('token', data.token); // Overwrite token with the session token
+        setUser(data.user);
+        setActiveDocumentId(roomId);
+      } else {
+        setError(data.error || 'Failed to join session');
       }
-  };
-
-  const handleCreateRoom = () => {
-      const newRoomId = Math.random().toString(36).substring(2, 11);
-      setActiveDocumentId(newRoomId);
-  };
-
-  if (user) {
-    if (activeDocumentId) {
-        return (
-            <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc' }}>
-                <header style={{ padding: '12px 24px', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                    <div style={{ fontSize: '20px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className="brand-title" style={{ margin: 0, fontSize: '24px' }}>SyncSpace</span>
-                    </div>
-                    <div style={{ fontSize: '14px', color: '#475569', display: 'flex', alignItems: 'center', gap: '16px', background: '#f1f5f9', padding: '8px 16px', borderRadius: '20px' }}>
-                        <span>👋 {user.username}</span>
-                        <div style={{ width: '4px', height: '4px', background: '#cbd5e1', borderRadius: '50%' }}></div>
-                        <span>Room: <strong style={{ color: '#8b5cf6', fontFamily: 'monospace', fontSize: '15px' }}>{activeDocumentId}</strong></span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                        <button 
-                            onClick={() => setActiveDocumentId(null)} 
-                            className="btn-secondary"
-                            style={{ marginTop: 0, textDecoration: 'none', padding: '8px 16px', border: '1px solid #e2e8f0', borderRadius: '8px', background: 'white' }}
-                        >
-                            Leave Room
-                        </button>
-                        <button 
-                            onClick={handleLogout}
-                            className="btn-primary btn-danger"
-                            style={{ padding: '8px 16px', fontSize: '14px', borderRadius: '8px' }}
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </header>
-                <Workspace user={user} documentId={activeDocumentId} />
-            </div>
-        );
+    } catch (err) {
+      setError('Network error. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    return (
-        <div className="auth-container">
-            <div className="card dashboard-card">
-                <header style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '24px' }}>
-                    <h1 className="brand-title" style={{ margin: 0 }}>SyncSpace</h1>
-                    <button 
-                        onClick={handleLogout}
-                        className="btn-secondary"
-                        style={{ marginTop: 0, background: '#f1f5f9', padding: '8px 16px', borderRadius: '8px', textDecoration: 'none' }}
-                    >
-                        Sign out
-                    </button>
-                </header>
-                
-                <div style={{ background: 'linear-gradient(to right, #f8fafc, #f1f5f9)', padding: '24px', borderRadius: '16px', borderLeft: '4px solid #3b82f6', marginBottom: '40px' }}>
-                    <h3 style={{ color: '#0f172a', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span>🎯</span> Mission Control
-                    </h3>
-                    <p style={{ color: '#475569', fontSize: '14.5px', lineHeight: '1.6' }}>
-                        <strong>Use Case:</strong> A distributed engineering team uses SyncSpace for technical interviews. Candidate A draws an architecture diagram on the left side of the screen using the React canvas, while Interviewer B simultaneously writes Node.js code on the right side. The system uses WebSockets to broadcast changes instantly, and Conflict-free Replicated Data Types (CRDTs) to ensure that if both users edit the same line of code at the exact same millisecond, the final state merges perfectly without breaking the document.
-                    </p>
-                </div>
-
-                <div>
-                    <h2 style={{ fontSize: '28px', marginBottom: '8px' }}>Welcome back, <span style={{ color: '#3b82f6' }}>{user.username}</span>!</h2>
-                    <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '16px' }}>What would you like to do today?</p>
-                    
-                    <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-                        {/* Create Room Section */}
-                        <div className="glass-panel" style={{ flex: 1, minWidth: '300px' }}>
-                            <div style={{ fontSize: '32px', marginBottom: '16px' }}>🚀</div>
-                            <h3 style={{ marginBottom: '12px', color: '#0f172a', fontSize: '20px' }}>New Session</h3>
-                            <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px', minHeight: '40px', lineHeight: '1.5' }}>
-                                Start a fresh collaborative workspace. You'll receive a unique secure Room ID to share with your team.
-                            </p>
-                            <button onClick={handleCreateRoom} className="btn-primary btn-success">
-                                <span>➕</span> Create Workspace
-                            </button>
-                        </div>
-
-                        {/* Join Room Section */}
-                        <div className="glass-panel" style={{ flex: 1, minWidth: '300px' }}>
-                            <div style={{ fontSize: '32px', marginBottom: '16px' }}>🤝</div>
-                            <h3 style={{ marginBottom: '12px', color: '#0f172a', fontSize: '20px' }}>Join Team</h3>
-                            <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px', minHeight: '40px', lineHeight: '1.5' }}>
-                                Have an invite code? Enter the Room ID below to instantly join an active session.
-                            </p>
-                            <form onSubmit={handleJoinRoom}>
-                                <input 
-                                    type="text" 
-                                    className="input-field"
-                                    placeholder="e.g., k39d1nf0s" 
-                                    value={joinRoomId} 
-                                    onChange={(e) => setJoinRoomId(e.target.value)} 
-                                    required 
-                                    style={{ fontFamily: 'monospace', letterSpacing: '1px' }}
-                                />
-                                <button type="submit" className="btn-primary">
-                                    <span>➡️</span> Enter Room
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+  // 1. Workspace View
+  if (user && activeDocumentId) {
+      return (
+          <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#0f172a' }}>
+              <header style={{ padding: '12px 24px', backgroundColor: 'rgba(30, 41, 59, 0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: '20px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#38bdf8' }}>✨</span>
+                      <span className="brand-title" style={{ margin: 0, fontSize: '20px', background: 'white', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>SyncSpace</span>
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: '8px' }}>
+                      <span>{user.role}: <strong>{user.username}</strong></span>
+                      <div style={{ width: '4px', height: '4px', background: '#475569', borderRadius: '50%' }}></div>
+                      <span>Room ID: <strong style={{ color: '#38bdf8', fontFamily: 'monospace' }}>{activeDocumentId}</strong></span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                      <button 
+                          onClick={() => setActiveDocumentId(null)}
+                          className="btn-danger"
+                          style={{ padding: '6px 12px', fontSize: '13px', borderRadius: '6px', border: 'none', color: 'white', cursor: 'pointer' }}
+                      >
+                          Leave Session
+                      </button>
+                      <button 
+                          onClick={handleLogout}
+                          style={{ padding: '6px 12px', fontSize: '13px', borderRadius: '6px', border: '1px solid #475569', background: 'transparent', color: '#94a3b8', cursor: 'pointer' }}
+                      >
+                          Logout
+                      </button>
+                  </div>
+              </header>
+              <Workspace user={user} documentId={activeDocumentId} isSpectator={user.role === 'Spectator'} />
+          </div>
+      );
   }
 
+  // 2. Role/Room Selection View (After Login)
+  if (user && showRoleSelection) {
+      return (
+        <div className="auth-container dark-theme">
+            <div className="card dark-card">
+                <div className="logo-icon">✨</div>
+                <h1 className="brand-title-dark" style={{ background: 'linear-gradient(135deg, #38bdf8, #818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Welcome to SyncSpace</h1>
+                <p className="brand-subtitle-dark">
+                    Real-Time Collaborative Technical Interview Platform powered by Yjs CRDTs & WebSockets.
+                </p>
+                
+                {error && <p className="error-text">{error}</p>}
+                
+                <form onSubmit={handleJoinSession} className="join-form">
+                    <div className="input-group">
+                        <label>YOUR NAME / HANDLE</label>
+                        <input 
+                            type="text" 
+                            className="input-field-dark"
+                            placeholder="e.g. Alex (Candidate)" 
+                            value={handle} 
+                            onChange={(e) => setHandle(e.target.value)} 
+                            required 
+                        />
+                    </div>
+
+                    <div className="input-group">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                            <label>INTERVIEW ROOM ID</label>
+                            <button type="button" className="text-btn" onClick={handleGenerateId}>
+                                + Generate Random ID
+                            </button>
+                        </div>
+                        <input 
+                            type="text" 
+                            className="input-field-dark"
+                            placeholder="e.g. interview-782a" 
+                            value={roomId} 
+                            onChange={(e) => setRoomId(e.target.value)} 
+                            required 
+                        />
+                    </div>
+
+                    <div className="input-group" style={{ marginBottom: '30px' }}>
+                        <label>SELECT SESSION ROLE</label>
+                        <div className="role-selector">
+                            <button 
+                                type="button" 
+                                className={`role-btn ${role === 'Candidate' ? 'active' : ''}`}
+                                onClick={() => setRole('Candidate')}
+                            >
+                                <span className="role-icon">{'</>'}</span>
+                                Candidate
+                            </button>
+                            <button 
+                                type="button" 
+                                className={`role-btn ${role === 'Interviewer' ? 'active' : ''}`}
+                                onClick={() => setRole('Interviewer')}
+                            >
+                                <span className="role-icon">📚</span>
+                                Interviewer
+                            </button>
+                            <button 
+                                type="button" 
+                                className={`role-btn ${role === 'Spectator' ? 'active' : ''}`}
+                                onClick={() => setRole('Spectator')}
+                            >
+                                <span className="role-icon">👁️</span>
+                                Spectator
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" className="btn-primary-dark" disabled={isLoading}>
+                        {isLoading ? 'Connecting...' : 'Enter SyncSpace Session ➔'}
+                    </button>
+                    <button type="button" onClick={handleLogout} className="btn-secondary" style={{ width: '100%', marginTop: '16px' }}>
+                        Sign out
+                    </button>
+                </form>
+            </div>
+        </div>
+      );
+  }
+
+  // 3. Initial Login/Register View
   return (
     <div className="auth-container">
       {showRegister ? (

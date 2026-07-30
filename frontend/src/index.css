@@ -213,7 +213,7 @@ body {
 .password-toggle-btn {
     position: absolute;
     right: 14px;
-    top: 25px;
+    top: 25px; /* Centered relative to input height considering margin */
     background: none;
     border: none;
     cursor: pointer;
@@ -306,4 +306,153 @@ input[type=range]::-webkit-slider-runnable-track {
     width: 16px;
     height: 16px;
     cursor: pointer;
+}
+
+/* NEW DARK THEME UI (For the Interview Screen) */
+.dark-theme {
+    background: #0f172a;
+    background-image: radial-gradient(at 50% 0%, rgba(56, 189, 248, 0.1) 0px, transparent 50%);
+}
+
+.dark-card {
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    padding: 40px;
+    border-radius: 24px;
+    max-width: 500px;
+}
+
+.logo-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+}
+
+.brand-title-dark {
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 8px;
+}
+
+.brand-subtitle-dark {
+    color: #94a3b8;
+    font-size: 14px;
+    margin-bottom: 32px;
+    line-height: 1.5;
+}
+
+.join-form {
+    text-align: left;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #cbd5e1;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+.input-field-dark {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: white;
+    font-size: 15px;
+    transition: all 0.2s ease;
+}
+
+.input-field-dark::placeholder {
+    color: #64748b;
+}
+
+.input-field-dark:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+.text-btn {
+    background: none;
+    border: none;
+    color: #38bdf8;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-bottom: 8px;
+}
+
+.text-btn:hover {
+    color: #7dd3fc;
+}
+
+.role-selector {
+    display: flex;
+    gap: 12px;
+}
+
+.role-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 8px;
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.role-btn:hover {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.role-btn.active {
+    background: rgba(56, 189, 248, 0.1);
+    border-color: #38bdf8;
+    color: white;
+}
+
+.role-icon {
+    font-size: 20px;
+}
+
+.role-btn.active .role-icon {
+    color: #38bdf8;
+}
+
+.btn-primary-dark {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+}
+
+.btn-primary-dark:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 25px -5px rgba(37, 99, 235, 0.4);
 }

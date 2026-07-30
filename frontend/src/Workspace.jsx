@@ -4,7 +4,7 @@ import CodeEditor from './CodeEditor.jsx';
 import * as Y from 'yjs';
 import { io } from 'socket.io-client';
 
-function Workspace({ user, documentId }) {
+function Workspace({ user, documentId, isSpectator }) {
   const [ydoc, setYdoc] = useState(null);
   const [socket, setSocket] = useState(null);
   const [error, setError] = useState(null);
@@ -21,9 +21,11 @@ function Workspace({ user, documentId }) {
     const newYdoc = new Y.Doc();
     ydocRef.current = newYdoc;
 
-    const newSocket = io('/', {
+    // Hardcoded to your live Render backend
+    const newSocket = io('https://axlero-backend-1.onrender.com', {
       query: { documentId },
-      auth: { token }
+      auth: { token },
+      transports: ['websocket', 'polling']
     });
 
     newSocket.on('connect_error', (err) => {
@@ -40,7 +42,7 @@ function Workspace({ user, documentId }) {
     });
 
     newYdoc.on('update', (update, origin) => {
-      if (origin !== newSocket) {
+      if (origin !== newSocket && !isSpectator && !isReplaying) {
         newSocket.emit('sync-update', update);
       }
     });
@@ -64,7 +66,7 @@ function Workspace({ user, documentId }) {
       newSocket.disconnect();
       newYdoc.destroy();
     };
-  }, [documentId]);
+  }, [documentId, isSpectator, isReplaying]);
 
   useEffect(() => {
     if (isReplaying && snapshots.length > 0) {
@@ -106,6 +108,7 @@ function Workspace({ user, documentId }) {
   }
 
   const docToRender = isReplaying && replayDoc ? replayDoc : ydoc;
+  const isReadOnly = isReplaying || isSpectator;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
@@ -150,10 +153,10 @@ function Workspace({ user, documentId }) {
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <div style={{ flex: 1, borderRight: '2px solid #e2e8f0', position: 'relative' }}>
-          <Whiteboard user={user} ydoc={docToRender} socket={socket} isReadOnly={isReplaying} />
+          <Whiteboard user={user} ydoc={docToRender} socket={socket} isReadOnly={isReadOnly} />
         </div>
         <div style={{ flex: 1, position: 'relative', background: '#1e1e1e' }}>
-          <CodeEditor user={user} ydoc={docToRender} socket={socket} isReadOnly={isReplaying} />
+          <CodeEditor user={user} ydoc={docToRender} socket={socket} isReadOnly={isReadOnly} />
         </div>
       </div>
     </div>
