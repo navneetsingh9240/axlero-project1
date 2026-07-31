@@ -4,7 +4,7 @@ import CodeEditor from './CodeEditor.jsx';
 import * as Y from 'yjs';
 import { io } from 'socket.io-client';
 
-function Workspace({ user, documentId, isSpectator }) {
+function Workspace({ user, documentId, isSpectator, viewMode }) {
   const [ydoc, setYdoc] = useState(null);
   const [socket, setSocket] = useState(null);
   const [error, setError] = useState(null);
@@ -21,11 +21,16 @@ function Workspace({ user, documentId, isSpectator }) {
     const newYdoc = new Y.Doc();
     ydocRef.current = newYdoc;
 
-    // Hardcoded to your live Render backend
-    const newSocket = io('https://axlero-backend-1.onrender.com', {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+    
+    // When deploying separately, the frontend needs to know exactly where the backend Socket.io is hosted.
+    // If backendUrl is empty (local dev with proxy), io('/') works. Otherwise, we point to the full URL.
+    const newSocket = backendUrl ? io(backendUrl, {
       query: { documentId },
-      auth: { token },
-      transports: ['websocket', 'polling']
+      auth: { token }
+    }) : io('/', {
+      query: { documentId },
+      auth: { token }
     });
 
     newSocket.on('connect_error', (err) => {
@@ -151,13 +156,17 @@ function Workspace({ user, documentId, isSpectator }) {
         )}
       </div>
 
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <div style={{ flex: 1, borderRight: '2px solid #e2e8f0', position: 'relative' }}>
-          <Whiteboard user={user} ydoc={docToRender} socket={socket} isReadOnly={isReadOnly} />
-        </div>
-        <div style={{ flex: 1, position: 'relative', background: '#1e1e1e' }}>
-          <CodeEditor user={user} ydoc={docToRender} socket={socket} isReadOnly={isReadOnly} />
-        </div>
+      <div className="workspace-container" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {(viewMode === 'canvas' || viewMode === 'split') && (
+            <div style={{ flex: viewMode === 'canvas' ? 1 : 1, borderRight: viewMode === 'split' ? '2px solid #1e293b' : 'none', position: 'relative' }}>
+              <Whiteboard user={user} ydoc={docToRender} socket={socket} isReadOnly={isReadOnly} />
+            </div>
+        )}
+        {(viewMode === 'code' || viewMode === 'split') && (
+            <div style={{ flex: viewMode === 'code' ? 1 : 1, position: 'relative', background: '#1e1e1e' }}>
+              <CodeEditor user={user} ydoc={docToRender} socket={socket} isReadOnly={isReadOnly} />
+            </div>
+        )}
       </div>
     </div>
   );
