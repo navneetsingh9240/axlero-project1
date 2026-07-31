@@ -456,3 +456,45 @@ input[type=range]::-webkit-slider-runnable-track {
     transform: translateY(-2px);
     box-shadow: 0 15px 25px -5px rgba(37, 99, 235, 0.4);
 }
+
+/* Responsive Design Overrides */
+@media (max-width: 768px) {
+    .auth-container {
+        padding: 10px;
+    }
+
+    .card, .dark-card {
+        padding: 24px;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .brand-title {
+        font-size: 28px;
+    }
+
+    .brand-title-dark {
+        font-size: 24px;
+    }
+
+    /* Stack input groups vertically */
+    .role-selector {
+        flex-direction: column;
+    }
+
+    .role-btn {
+        padding: 12px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .workspace-container {
+        flex-direction: column !important;
+        overflow-y: auto !important;
+    }
+    .workspace-container > div {
+        border-right: none !important;
+        border-bottom: 2px solid #1e293b !important;
+        min-height: 500px;
+    }
+}
