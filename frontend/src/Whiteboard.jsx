@@ -1,173 +1,132 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Stage, Layer, Line, Text, Rect, Circle, RegularPolygon } from 'react-konva';
+import { Stage, Layer, Line, Rect, Circle, RegularPolygon, Text } from 'react-konva';
 
 function Whiteboard({ user, ydoc, socket, isReadOnly }) {
   const [shapes, setShapes] = useState([]);
-  const [cursors, setCursors] = useState({});
-  const isDrawing = useRef(false);
-  const currentShapeId = useRef(null);
-  const yShapesMapRef = useRef(null);
-
-  // State for drawing tools
   const [tool, setTool] = useState('pen');
   const [strokeColor, setStrokeColor] = useState('#df4b26');
   const [strokeWidth, setStrokeWidth] = useState(5);
+  const [cursors, setCursors] = useState({});
+  const containerRef = useRef(null);
+  const [stageSize, setStageSize] = useState({ width: window.innerWidth / 2, height: window.innerHeight - 150 });
+  const isDrawing = useRef(false);
+  const currentShapeId = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+        if (containerRef.current) {
+            setStageSize({
+                width: containerRef.current.offsetWidth,
+                height: containerRef.current.offsetHeight
+            });
+        }
+    };
+    
+    // Initial size
+    handleResize();
+    
+    window.addEventListener('resize', handleResize);
+    // Add an observer to catch flexbox layout shifts
+    const observer = new ResizeObserver(handleResize);
+    if (containerRef.current) observer.observe(containerRef.current);
+
+    return () => {
+        window.removeEventListener('resize', handleResize);
+        observer.disconnect();
+    };
+  }, []);
+  const yShapesMapRef = useRef(null);
 
   useEffect(() => {
     if (!ydoc) return;
+    const ymap = ydoc.getMap('shapesMap');
+    yShapesMapRef.current = ymap;
 
-    const yShapesMap = ydoc.getMap('linesMap');
-    yShapesMapRef.current = yShapesMap;
-
-    const observeMap = () => {
-      const shapesArray = Array.from(yShapesMap.values());
-      setShapes(shapesArray);
+    const updateShapes = () => {
+      const currentShapes = Array.from(ymap.values());
+      setShapes(currentShapes);
     };
 
-    yShapesMap.observe(observeMap);
-    observeMap();
-
-    const handleAwareness = (awarenessData) => {
-      setCursors(prev => ({
-        ...prev,
-        [awarenessData.userId]: awarenessData
-      }));
-    };
-
+    ymap.observe(updateShapes);
+    updateShapes();
+    
+    // Remote cursors
     if (socket) {
-        socket.on('awareness-update', handleAwareness);
+      const handleMouseMove = (e) => {
+         if (isReadOnly) return;
+         socket.emit('cursor-move', { x: e.clientX, y: e.clientY, userId: user?.id, username: user?.username });
+      };
+      
+      socket.on('cursor-update', (cursorData) => {
+         setCursors(prev => ({ ...prev, [cursorData.userId]: cursorData }));
+      });
+      
+      window.addEventListener('mousemove', handleMouseMove);
+      return () => {
+         ymap.unobserve(updateShapes);
+         window.removeEventListener('mousemove', handleMouseMove);
+         socket.off('cursor-update');
+      };
     }
 
     return () => {
-      yShapesMap.unobserve(observeMap);
-      if (socket) {
-          socket.off('awareness-update', handleAwareness);
-      }
+      ymap.unobserve(updateShapes);
     };
-  }, [ydoc, socket]);
+  }, [ydoc, socket, user, isReadOnly]);
 
   const handleMouseDown = (e) => {
-    if (isReadOnly || !user) return;
+    if (isReadOnly) return;
     
+    isDrawing.current = true;
+    const pos = e.target.getStage().getPointerPosition();
+    const id = Date.now().toString();
+    currentShapeId.current = id;
+
     if (tool === 'text') {
-        const textStr = window.prompt("Enter text:");
-        if (textStr) {
-            const pos = e.target.getStage().getPointerPosition();
-            const shapeId = `${user.id}-${Date.now()}`;
-            const newText = {
-                id: shapeId,
+        const textValue = prompt('Enter text:');
+        if (textValue) {
+            yShapesMapRef.current.set(id, {
                 type: 'text',
+                id,
                 x: pos.x,
                 y: pos.y,
-                text: textStr,
-                userId: user.id,
-                strokeColor: strokeColor,
-                strokeWidth: strokeWidth
-            };
-            yShapesMapRef.current.set(shapeId, newText);
+                text: textValue,
+                strokeColor,
+                strokeWidth
+            });
         }
+        isDrawing.current = false;
         return;
     }
 
-    isDrawing.current = true;
-    const pos = e.target.getStage().getPointerPosition();
+    const newShape = {
+      type: (tool === 'pen' || tool === 'eraser') ? 'line' : tool,
+      id,
+      points: (tool === 'pen' || tool === 'eraser' || tool === 'straight_line') ? [pos.x, pos.y] : [],
+      x: pos.x,
+      y: pos.y,
+      width: 0,
+      height: 0,
+      radius: 0,
+      tool,
+      strokeColor,
+      strokeWidth
+    };
     
-    currentShapeId.current = `${user.id}-${Date.now()}`;
-    
-    let newShape = null;
-
-    if (tool === 'pen' || tool === 'eraser') {
-        newShape = { 
-            id: currentShapeId.current, 
-            type: 'line',
-            tool: tool, 
-            points: [pos.x, pos.y],
-            userId: user.id,
-            strokeColor: tool === 'eraser' ? '#ffffff' : strokeColor,
-            strokeWidth: strokeWidth
-        };
-    } else if (tool === 'straight_line') {
-        newShape = { 
-            id: currentShapeId.current, 
-            type: 'straight_line',
-            points: [pos.x, pos.y, pos.x, pos.y], // start and end points
-            userId: user.id,
-            strokeColor: strokeColor,
-            strokeWidth: strokeWidth
-        };
-    } else if (tool === 'rect') {
-        newShape = {
-            id: currentShapeId.current,
-            type: 'rect',
-            x: pos.x,
-            y: pos.y,
-            width: 0,
-            height: 0,
-            userId: user.id,
-            strokeColor: strokeColor,
-            strokeWidth: strokeWidth
-        };
-    } else if (tool === 'square') {
-        newShape = {
-            id: currentShapeId.current,
-            type: 'square',
-            x: pos.x,
-            y: pos.y,
-            size: 0,
-            userId: user.id,
-            strokeColor: strokeColor,
-            strokeWidth: strokeWidth
-        };
-    } else if (tool === 'circle') {
-        newShape = {
-            id: currentShapeId.current,
-            type: 'circle',
-            x: pos.x,
-            y: pos.y,
-            radius: 0,
-            userId: user.id,
-            strokeColor: strokeColor,
-            strokeWidth: strokeWidth
-        };
-    } else if (tool === 'triangle') {
-        newShape = {
-            id: currentShapeId.current,
-            type: 'triangle',
-            x: pos.x,
-            y: pos.y,
-            radius: 0,
-            userId: user.id,
-            strokeColor: strokeColor,
-            strokeWidth: strokeWidth
-        };
-    } else if (tool === 'hexagon') {
-        newShape = {
-            id: currentShapeId.current,
-            type: 'hexagon',
-            x: pos.x,
-            y: pos.y,
-            radius: 0,
-            userId: user.id,
-            strokeColor: strokeColor,
-            strokeWidth: strokeWidth
-        };
-    }
-    
-    if (newShape) {
-        yShapesMapRef.current.set(currentShapeId.current, newShape);
-    }
+    yShapesMapRef.current.set(id, newShape);
   };
 
   const handleMouseMove = (e) => {
     const stage = e.target.getStage();
     const point = stage.getPointerPosition();
-
-    if (socket && user && !isReadOnly) {
-      socket.emit('awareness-update', {
-        userId: user.id,
-        username: user.username,
-        x: point.x,
-        y: point.y
+    
+    if (socket && !isReadOnly) {
+      // broadcast precise stage cursor coordinates
+      socket.emit('cursor-move', { 
+         x: point.x, 
+         y: point.y, 
+         userId: user?.id, 
+         username: user?.username 
       });
     }
 
@@ -220,70 +179,72 @@ function Whiteboard({ user, ydoc, socket, isReadOnly }) {
   };
 
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#0a0a1a' }}>
       
       {/* Modern Pane Header */}
       <div style={{ 
-          padding: '12px 16px', 
-          backgroundColor: '#f8fafc', 
-          borderBottom: '1px solid #e2e8f0',
+          padding: '8px 16px', 
+          backgroundColor: '#0a0a1a', 
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center', 
           flexWrap: 'wrap', 
           gap: '10px' 
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '18px' }}>🎨</span>
-            <span style={{ fontWeight: '600', color: '#1e293b', fontSize: '14px' }}>Canvas</span>
-        </div>
-
         {!isReadOnly && (
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', background: 'white', padding: '4px 8px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-            <select className="tool-select" value={tool} onChange={(e) => setTool(e.target.value)} style={{ border: 'none', background: 'transparent' }}>
-              <option value="pen">✏️ Pen</option>
-              <option value="eraser">🧹 Eraser</option>
-              <option value="straight_line">📏 Line</option>
-              <option value="rect">🟦 Rectangle</option>
-              <option value="square">🔲 Square</option>
-              <option value="circle">⭕ Circle</option>
-              <option value="triangle">🔺 Triangle</option>
-              <option value="hexagon">⬡ Hexagon</option>
-              <option value="text">📝 Text</option>
-            </select>
-            
-            <div style={{ width: '1px', height: '20px', background: '#e2e8f0' }}></div>
-            
-            {tool !== 'eraser' && (
-              <input 
-                type="color" 
-                value={strokeColor} 
-                onChange={(e) => setStrokeColor(e.target.value)} 
-                title="Color"
-                style={{ cursor: 'pointer', border: 'none', width: '24px', height: '24px', padding: 0, background: 'transparent' }}
-              />
-            )}
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '4px' }}>
-                <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Size</span>
-                <input 
-                  type="range" 
-                  min="1" 
-                  max="20" 
-                  value={strokeWidth} 
-                  onChange={(e) => setStrokeWidth(Number(e.target.value))} 
-                  title="Stroke Width"
-                />
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '8px', background: 'transparent', padding: '4px', borderRadius: '4px' }}>
+                <button onClick={() => setTool('rect')} style={{ background: tool === 'rect' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'white', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}>⬜</button>
+                <button onClick={() => setTool('circle')} style={{ background: tool === 'circle' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'white', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}>⭕</button>
+                <button onClick={() => setTool('straight_line')} style={{ background: tool === 'straight_line' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'white', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}>→</button>
+                <button style={{ background: 'transparent', border: 'none', color: '#0ea5e9', cursor: 'pointer', padding: '4px' }}>⚏</button>
+                <button style={{ background: 'transparent', border: 'none', color: '#0ea5e9', cursor: 'pointer', padding: '4px' }}>☁</button>
+                <button onClick={() => setTool('square')} style={{ background: tool === 'square' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: '#eab308', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}>⎕</button>
+                <button onClick={() => setTool('text')} style={{ background: tool === 'text' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'white', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}>T</button>
+                <button onClick={() => setTool('pen')} style={{ background: tool === 'pen' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}>✎</button>
             </div>
+            
+            <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.1)' }}></div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {['#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ffffff'].map(color => (
+                    <button 
+                        key={color}
+                        onClick={() => setStrokeColor(color)}
+                        style={{ 
+                            width: '20px', 
+                            height: '20px', 
+                            borderRadius: '50%', 
+                            background: color, 
+                            border: strokeColor === color ? '2px solid white' : 'none',
+                            cursor: 'pointer'
+                        }}
+                    />
+                ))}
+            </div>
+
+            <button style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.05)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>📋</span> Template
+            </button>
+            <button style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '16px' }}>↺</button>
+            <button onClick={() => setTool('eraser')} style={{ background: tool === 'eraser' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', borderRadius: '4px', fontSize: '16px' }}>🗑</button>
           </div>
         )}
-        {isReadOnly && <span style={{ color: '#ef4444', fontWeight: '600', fontSize: '12px', background: '#fef2f2', padding: '4px 8px', borderRadius: '4px' }}>READ ONLY</span>}
+        {isReadOnly && <span style={{ color: '#ef4444', fontWeight: '600', fontSize: '12px', background: 'rgba(239,68,68,0.1)', padding: '4px 8px', borderRadius: '4px' }}>READ ONLY</span>}
       </div>
 
-      <div style={{ flex: 1, backgroundColor: 'white', cursor: getCursorStyle(), overflow: 'hidden' }}>
+      <div ref={containerRef} style={{ 
+          flex: 1, 
+          backgroundColor: '#0a0a1a', 
+          backgroundImage: 'radial-gradient(circle, #334155 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+          cursor: getCursorStyle(), 
+          overflow: 'hidden' 
+      }}>
         <Stage
-          width={window.innerWidth / 2}
-          height={window.innerHeight - 150} // Approximate height minus headers
+          width={stageSize.width}
+          height={stageSize.height}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
