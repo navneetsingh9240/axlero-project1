@@ -7,6 +7,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [showRegister, setShowRegister] = useState(false);
   const [activeDocumentId, setActiveDocumentId] = useState(null);
+  const [viewMode, setViewMode] = useState('split'); // 'canvas', 'split', 'code'
   
   // Role Selection State
   const [handle, setHandle] = useState('');
@@ -42,8 +43,9 @@ function App() {
     setError('');
 
     try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
       // Hit the new join endpoint to get a fresh token with role and handle
-      const response = await fetch('https://axlero-backend-1.onrender.com/api/auth/join', {
+      const response = await fetch(`${backendUrl}/api/auth/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ handle, role, roomId }),
@@ -69,33 +71,58 @@ function App() {
   if (user && activeDocumentId) {
       return (
           <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#0f172a' }}>
-              <header style={{ padding: '12px 24px', backgroundColor: 'rgba(30, 41, 59, 0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ fontSize: '20px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ color: '#38bdf8' }}>✨</span>
-                      <span className="brand-title" style={{ margin: 0, fontSize: '20px', background: 'white', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>SyncSpace</span>
+              <header style={{ padding: '12px 24px', backgroundColor: '#0f172a', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ color: '#38bdf8', fontSize: '24px' }}>✨</span>
+                          <span className="brand-title" style={{ margin: 0, fontSize: '20px', color: 'white', fontWeight: 'bold' }}>SyncSpace</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#cbd5e1' }}>
+                          <span>— Real-Time Collaboration</span>
+                          <div style={{ padding: '4px 8px', background: '#064e3b', color: '#34d399', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <div style={{ width: '6px', height: '6px', background: '#34d399', borderRadius: '50%' }}></div>
+                              Yjs CRDT Active
+                          </div>
+                      </div>
                   </div>
-                  <div style={{ fontSize: '13px', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: '8px' }}>
-                      <span>{user.role}: <strong>{user.username}</strong></span>
-                      <div style={{ width: '4px', height: '4px', background: '#475569', borderRadius: '50%' }}></div>
-                      <span>Room ID: <strong style={{ color: '#38bdf8', fontFamily: 'monospace' }}>{activeDocumentId}</strong></span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '12px' }}>
+
+                  <div style={{ display: 'flex', background: '#1e293b', borderRadius: '8px', padding: '4px' }}>
                       <button 
-                          onClick={() => setActiveDocumentId(null)}
-                          className="btn-danger"
-                          style={{ padding: '6px 12px', fontSize: '13px', borderRadius: '6px', border: 'none', color: 'white', cursor: 'pointer' }}
+                          onClick={() => setViewMode('canvas')}
+                          style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '13px', border: 'none', background: viewMode === 'canvas' ? '#6366f1' : 'transparent', color: viewMode === 'canvas' ? 'white' : '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                       >
-                          Leave Session
+                          🎨 Canvas
                       </button>
                       <button 
-                          onClick={handleLogout}
-                          style={{ padding: '6px 12px', fontSize: '13px', borderRadius: '6px', border: '1px solid #475569', background: 'transparent', color: '#94a3b8', cursor: 'pointer' }}
+                          onClick={() => setViewMode('split')}
+                          style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '13px', border: 'none', background: viewMode === 'split' ? '#6366f1' : 'transparent', color: viewMode === 'split' ? 'white' : '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                       >
-                          Logout
+                          ◫ Split View
+                      </button>
+                      <button 
+                          onClick={() => setViewMode('code')}
+                          style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '13px', border: 'none', background: viewMode === 'code' ? '#6366f1' : 'transparent', color: viewMode === 'code' ? 'white' : '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      >
+                          {'</>'} Code Editor
+                      </button>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ fontSize: '13px', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>Room: <strong style={{ color: '#38bdf8', fontFamily: 'monospace' }}>{activeDocumentId}</strong></span>
+                      </div>
+                      <button style={{ padding: '6px 12px', fontSize: '13px', borderRadius: '20px', border: '1px solid #334155', background: 'transparent', color: '#cbd5e1', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '16px' }}>+</span> Invite
+                      </button>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#d946ef', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px' }}>
+                          PO
+                      </div>
+                      <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '18px' }}>
+                          🚪
                       </button>
                   </div>
               </header>
-              <Workspace user={user} documentId={activeDocumentId} isSpectator={user.role === 'Spectator'} />
+              <Workspace user={user} documentId={activeDocumentId} isSpectator={user.role === 'Spectator'} viewMode={viewMode} />
           </div>
       );
   }
