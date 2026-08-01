@@ -43,7 +43,7 @@ function App() {
     setError('');
 
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+      const backendUrl = 'https://axlero-backend-1.onrender.com';
       // Hit the new join endpoint to get a fresh token with role and handle
       const response = await fetch(`${backendUrl}/api/auth/join`, {
         method: 'POST',
@@ -135,7 +135,7 @@ function App() {
                 <div className="logo-icon">✨</div>
                 <h1 className="brand-title-dark" style={{ background: 'linear-gradient(135deg, #38bdf8, #818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Welcome to SyncSpace</h1>
                 <p className="brand-subtitle-dark">
-                    Real-Time Collaborative Technical Interview Platform powered by Yjs CRDTs & WebSockets.
+                    Real-Time Collaborative Technical Interview Platform 
                 </p>
                 
                 {error && <p className="error-text">{error}</p>}
