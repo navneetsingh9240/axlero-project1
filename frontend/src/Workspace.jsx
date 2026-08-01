@@ -21,7 +21,7 @@ function Workspace({ user, documentId, isSpectator, viewMode }) {
     const newYdoc = new Y.Doc();
     ydocRef.current = newYdoc;
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+    const backendUrl = 'https://axlero-backend-1.onrender.com';
     
     // When deploying separately, the frontend needs to know exactly where the backend Socket.io is hosted.
     // If backendUrl is empty (local dev with proxy), io('/') works. Otherwise, we point to the full URL.
