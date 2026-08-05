@@ -179,69 +179,67 @@ function Whiteboard({ user, ydoc, socket, isReadOnly }) {
   };
 
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#0a0a1a' }}>
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
       
       {/* Modern Pane Header */}
       <div style={{ 
-          padding: '8px 16px', 
-          backgroundColor: '#0a0a1a', 
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          padding: '12px 16px', 
+          backgroundColor: '#f8fafc', 
+          borderBottom: '1px solid #e2e8f0',
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center', 
           flexWrap: 'wrap', 
           gap: '10px' 
       }}>
-        {!isReadOnly && (
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', gap: '8px', background: 'transparent', padding: '4px', borderRadius: '4px' }}>
-                <button onClick={() => setTool('rect')} style={{ background: tool === 'rect' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'white', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}>⬜</button>
-                <button onClick={() => setTool('circle')} style={{ background: tool === 'circle' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'white', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}>⭕</button>
-                <button onClick={() => setTool('straight_line')} style={{ background: tool === 'straight_line' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'white', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}>→</button>
-                <button style={{ background: 'transparent', border: 'none', color: '#0ea5e9', cursor: 'pointer', padding: '4px' }}>⚏</button>
-                <button style={{ background: 'transparent', border: 'none', color: '#0ea5e9', cursor: 'pointer', padding: '4px' }}>☁</button>
-                <button onClick={() => setTool('square')} style={{ background: tool === 'square' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: '#eab308', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}>⎕</button>
-                <button onClick={() => setTool('text')} style={{ background: tool === 'text' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'white', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}>T</button>
-                <button onClick={() => setTool('pen')} style={{ background: tool === 'pen' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}>✎</button>
-            </div>
-            
-            <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.1)' }}></div>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                {['#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ffffff'].map(color => (
-                    <button 
-                        key={color}
-                        onClick={() => setStrokeColor(color)}
-                        style={{ 
-                            width: '20px', 
-                            height: '20px', 
-                            borderRadius: '50%', 
-                            background: color, 
-                            border: strokeColor === color ? '2px solid white' : 'none',
-                            cursor: 'pointer'
-                        }}
-                    />
-                ))}
-            </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '18px' }}>🎨</span>
+            <span style={{ fontWeight: '600', color: '#1e293b', fontSize: '14px' }}>Canvas</span>
+        </div>
 
-            <button style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.05)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span>📋</span> Template
-            </button>
-            <button style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '16px' }}>↺</button>
-            <button onClick={() => setTool('eraser')} style={{ background: tool === 'eraser' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', borderRadius: '4px', fontSize: '16px' }}>🗑</button>
+        {!isReadOnly && (
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', background: 'white', padding: '4px 8px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+            <select className="tool-select" value={tool} onChange={(e) => setTool(e.target.value)} style={{ border: 'none', background: 'transparent' }}>
+              <option value="pen">✏️ Pen</option>
+              <option value="eraser">🧹 Eraser</option>
+              <option value="straight_line">📏 Line</option>
+              <option value="rect">🟦 Rectangle</option>
+              <option value="square">🔲 Square</option>
+              <option value="circle">⭕ Circle</option>
+              <option value="triangle">🔺 Triangle</option>
+              <option value="hexagon">⬡ Hexagon</option>
+              <option value="text">📝 Text</option>
+            </select>
+            
+            <div style={{ width: '1px', height: '20px', background: '#e2e8f0' }}></div>
+            
+            {tool !== 'eraser' && (
+              <input 
+                type="color" 
+                value={strokeColor} 
+                onChange={(e) => setStrokeColor(e.target.value)} 
+                title="Color"
+                style={{ cursor: 'pointer', border: 'none', width: '24px', height: '24px', padding: 0, background: 'transparent' }}
+              />
+            )}
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '4px' }}>
+                <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Size</span>
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="20" 
+                  value={strokeWidth} 
+                  onChange={(e) => setStrokeWidth(Number(e.target.value))} 
+                  title="Stroke Width"
+                />
+            </div>
           </div>
         )}
-        {isReadOnly && <span style={{ color: '#ef4444', fontWeight: '600', fontSize: '12px', background: 'rgba(239,68,68,0.1)', padding: '4px 8px', borderRadius: '4px' }}>READ ONLY</span>}
+        {isReadOnly && <span style={{ color: '#ef4444', fontWeight: '600', fontSize: '12px', background: '#fef2f2', padding: '4px 8px', borderRadius: '4px' }}>READ ONLY</span>}
       </div>
 
-      <div ref={containerRef} style={{ 
-          flex: 1, 
-          backgroundColor: '#0a0a1a', 
-          backgroundImage: 'radial-gradient(circle, #334155 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-          cursor: getCursorStyle(), 
-          overflow: 'hidden' 
-      }}>
+      <div ref={containerRef} style={{ flex: 1, backgroundColor: 'white', cursor: getCursorStyle(), overflow: 'hidden' }}>
         <Stage
           width={stageSize.width}
           height={stageSize.height}
