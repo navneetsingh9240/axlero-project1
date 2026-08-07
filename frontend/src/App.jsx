@@ -7,7 +7,8 @@ function App() {
   const [user, setUser] = useState(null);
   const [showRegister, setShowRegister] = useState(false);
   const [activeDocumentId, setActiveDocumentId] = useState(null);
-  const [viewMode, setViewMode] = useState('split'); // 'canvas', 'split', 'code'
+  const [viewMode, setViewMode] = useState('split');
+  const [activeUsers, setActiveUsers] = useState([]);
   
   // Role Selection State
   const [handle, setHandle] = useState('');
@@ -114,15 +115,46 @@ function App() {
                       <button style={{ padding: '6px 12px', fontSize: '13px', borderRadius: '20px', border: '1px solid #334155', background: 'transparent', color: '#cbd5e1', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <span style={{ fontSize: '16px' }}>+</span> Invite
                       </button>
-                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#d946ef', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px' }}>
-                          PO
+                      
+                      {/* Active User Avatars */}
+                      <div style={{ display: 'flex', marginLeft: '8px' }}>
+                          {activeUsers.map((u, i) => {
+                              const colors = ['#d946ef', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+                              const bgColor = colors[i % colors.length];
+                              const initials = u.username.substring(0, 2).toUpperCase();
+                              return (
+                                  <div 
+                                      key={u.id || i}
+                                      title={`${u.username} (${u.role})`}
+                                      style={{ 
+                                          width: '32px', 
+                                          height: '32px', 
+                                          borderRadius: '50%', 
+                                          background: bgColor, 
+                                          color: 'white', 
+                                          display: 'flex', 
+                                          alignItems: 'center', 
+                                          justifyContent: 'center', 
+                                          fontWeight: 'bold', 
+                                          fontSize: '14px',
+                                          marginLeft: i === 0 ? 0 : '-10px',
+                                          border: '2px solid #0f172a',
+                                          position: 'relative',
+                                          zIndex: activeUsers.length - i
+                                      }}
+                                  >
+                                      {initials}
+                                  </div>
+                              );
+                          })}
                       </div>
-                      <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '18px' }}>
+
+                      <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '18px', marginLeft: '12px' }}>
                           🚪
                       </button>
                   </div>
               </header>
-              <Workspace user={user} documentId={activeDocumentId} isSpectator={user.role === 'Spectator'} viewMode={viewMode} />
+              <Workspace user={user} documentId={activeDocumentId} isSpectator={user.role === 'Spectator'} viewMode={viewMode} onActiveUsersChange={setActiveUsers} />
           </div>
       );
   }
@@ -135,7 +167,7 @@ function App() {
                 <div className="logo-icon">✨</div>
                 <h1 className="brand-title-dark" style={{ background: 'linear-gradient(135deg, #38bdf8, #818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Welcome to SyncSpace</h1>
                 <p className="brand-subtitle-dark">
-                    Real-Time Collaborative Technical Interview Platform 
+                    Real-Time Collaborative Technical Interview Platform powered by Yjs CRDTs & WebSockets.
                 </p>
                 
                 {error && <p className="error-text">{error}</p>}
