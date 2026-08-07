@@ -45,15 +45,27 @@ function CodeEditor({ user, ydoc, socket, isReadOnly }) {
     setIsRunning(true);
     setIsOutputExpanded(true);
     setOutput('Running code...\n');
+    
     try {
         const code = editorRef.current.getValue();
-        // Mock execution for now
-        setTimeout(() => {
-            setOutput(prev => prev + `[Execution Complete]\nNo output for ${language}`);
-            setIsRunning(false);
-        }, 1000);
+        const backendUrl = 'https://axlero-backend-1.onrender.com';
+        
+        const response = await fetch(`${backendUrl}/api/execute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, language })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            setOutput(`[Error Execution]\n${data.output}`);
+        } else {
+            setOutput(`[Execution Output]\n${data.output}`);
+        }
     } catch (e) {
-        setOutput(`Error: ${e.message}`);
+        setOutput(`Network Error: ${e.message}`);
+    } finally {
         setIsRunning(false);
     }
   };
@@ -182,7 +194,7 @@ function CodeEditor({ user, ydoc, socket, isReadOnly }) {
         </div>
         
         {isOutputExpanded && (
-            <div style={{ padding: '12px 16px', color: '#e2e8f0', fontSize: '13px', fontFamily: 'monospace', overflowY: 'auto', flex: 1 }}>
+            <div style={{ padding: '12px 16px', color: '#e2e8f0', fontSize: '13px', fontFamily: 'monospace', overflowY: 'auto', flex: 1, whiteSpace: 'pre-wrap' }}>
               {output || <span style={{ color: '#475569' }}>Click "Run Code" above to execute code snippets live.</span>}
             </div>
         )}
