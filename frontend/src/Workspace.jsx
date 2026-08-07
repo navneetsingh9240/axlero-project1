@@ -4,7 +4,7 @@ import CodeEditor from './CodeEditor.jsx';
 import * as Y from 'yjs';
 import { io } from 'socket.io-client';
 
-function Workspace({ user, documentId, isSpectator, viewMode }) {
+function Workspace({ user, documentId, isSpectator, viewMode, onActiveUsersChange }) {
   const [ydoc, setYdoc] = useState(null);
   const [socket, setSocket] = useState(null);
   const [error, setError] = useState(null);
@@ -40,6 +40,21 @@ function Workspace({ user, documentId, isSpectator, viewMode }) {
 
     newSocket.on('disconnect', () => {
       setError("Disconnected from server.");
+    });
+    
+    newSocket.on('users-update', (users) => {
+      if (onActiveUsersChange) {
+        // De-duplicate users based on username in case of multiple tabs
+        const uniqueUsers = [];
+        const seen = new Set();
+        for (const u of users) {
+          if (!seen.has(u.username)) {
+            seen.add(u.username);
+            uniqueUsers.push(u);
+          }
+        }
+        onActiveUsersChange(uniqueUsers);
+      }
     });
 
     newSocket.on('sync-update', (update) => {
