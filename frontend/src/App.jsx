@@ -121,11 +121,12 @@ function App() {
                           {activeUsers.map((u, i) => {
                               const colors = ['#d946ef', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
                               const bgColor = colors[i % colors.length];
-                              const initials = u.username.substring(0, 2).toUpperCase();
+                              const username = u?.username || 'U';
+                              const initials = username.substring(0, 2).toUpperCase();
                               return (
                                   <div 
                                       key={u.id || i}
-                                      title={`${u.username} (${u.role})`}
+                                      title={`${username} (${u.role || 'Unknown'})`}
                                       style={{ 
                                           width: '32px', 
                                           height: '32px', 
