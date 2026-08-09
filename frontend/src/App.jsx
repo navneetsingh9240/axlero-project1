@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Login from './Login.jsx';
 import Register from './Register.jsx';
 import Workspace from './Workspace.jsx';
@@ -17,10 +17,14 @@ function App() {
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [recentRooms, setRecentRooms] = useState([]);
 
   const handleLogin = (userData) => {
     setUser(userData);
     setHandle(userData.username); 
+    if (userData.recentRooms) {
+        setRecentRooms(userData.recentRooms);
+    }
     setShowRoleSelection(true);
   };
 
@@ -28,6 +32,7 @@ function App() {
     setUser(null);
     setActiveDocumentId(null);
     setShowRoleSelection(false);
+    setRecentRooms([]);
     localStorage.removeItem('token');
   };
 
@@ -49,7 +54,7 @@ function App() {
       const response = await fetch(`${backendUrl}/api/auth/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ handle, role, roomId }),
+        body: JSON.stringify({ handle, role, roomId, userId: user?.id }),
       });
       
       const data = await response.json();
@@ -58,6 +63,9 @@ function App() {
         localStorage.setItem('token', data.token); // Overwrite token with the session token
         setUser(data.user);
         setActiveDocumentId(roomId);
+        if (data.user.recentRooms) {
+            setRecentRooms(data.user.recentRooms);
+        }
       } else {
         setError(data.error || 'Failed to join session');
       }
@@ -68,16 +76,32 @@ function App() {
     }
   };
 
-  // 1. Workspace View
+  // 1. Workspace View (Inside a Session)
   if (user && activeDocumentId) {
       return (
-          <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#0f172a' }}>
-              <header style={{ padding: '12px 24px', backgroundColor: '#0f172a', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#0f172a' }}>
+              <header style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center', 
+                  padding: '12px 24px', 
+                  background: '#1e293b', 
+                  borderBottom: '1px solid #334155' 
+              }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ color: '#38bdf8', fontSize: '24px' }}>✨</span>
-                          <span className="brand-title" style={{ margin: 0, fontSize: '20px', color: 'white', fontWeight: 'bold' }}>SyncSpace</span>
-                      </div>
+                      <h2 style={{ 
+                          margin: 0, 
+                          fontSize: '18px', 
+                          fontWeight: 'bold',
+                          background: 'linear-gradient(135deg, #38bdf8, #818cf8)',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                      }}>
+                          <span>✨</span> SyncSpace
+                      </h2>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#cbd5e1' }}>
                           <span>— Real-Time Collaboration</span>
                           <div style={{ padding: '4px 8px', background: '#064e3b', color: '#34d399', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -126,7 +150,7 @@ function App() {
                               return (
                                   <div 
                                       key={u.id || i}
-                                      title={`${username} (${u.role || 'Unknown'})`}
+                                      title={`${u.username} (${u.role})`}
                                       style={{ 
                                           width: '32px', 
                                           height: '32px', 
@@ -201,6 +225,34 @@ function App() {
                             onChange={(e) => setRoomId(e.target.value)} 
                             required 
                         />
+                        {recentRooms.length > 0 && (
+                            <div style={{ marginTop: '8px' }}>
+                                <span style={{ fontSize: '11px', color: '#94a3b8', marginRight: '8px' }}>Recent Rooms:</span>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+                                    {recentRooms.map((room, idx) => (
+                                        <button
+                                            key={idx}
+                                            type="button"
+                                            onClick={() => setRoomId(room)}
+                                            style={{
+                                                background: '#1e293b',
+                                                border: '1px solid #334155',
+                                                color: '#cbd5e1',
+                                                padding: '4px 8px',
+                                                borderRadius: '4px',
+                                                fontSize: '11px',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.background = '#334155'}
+                                            onMouseLeave={(e) => e.target.style.background = '#1e293b'}
+                                        >
+                                            {room}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="input-group" style={{ marginBottom: '30px' }}>
