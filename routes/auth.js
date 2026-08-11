@@ -16,6 +16,11 @@ router.post('/register', async (req, res) => {
     ) {
         return res.status(400).json({ error: 'Username and password required' });
     }
+    if (password.length<6){
+        return res.status(400).json({
+            error:'Password must be at least 6 characters long'
+        });
+    }
 
     try {
         const userModel = new UserModel(req.app.locals.db);
