@@ -29,6 +29,7 @@ async function connectToMongo(retries = 5, delay = 2000) {
     for (let i = 0; i < retries; i++) {
         try {
             console.log(`Connecting to MongoDB Atlas...`);
+            console.log('Connection attempt ${i+1} of $ {retries}');
             const client = await MongoClient.connect(mongoUrl);
             return client;
         } catch (err) {
