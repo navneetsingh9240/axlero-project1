@@ -8,7 +8,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-for-dev';
 
 router.post('/register', async (req, res) => {
     const { username, password } = req.body;
-    if (!username || !password) {
+    if (
+        typeof username !=='string' ||
+        typeof password !=='string' ||
+        !username.trim() ||
+        !password.trim()
+    ) {
         return res.status(400).json({ error: 'Username and password required' });
     }
 
