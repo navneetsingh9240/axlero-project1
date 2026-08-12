@@ -28,7 +28,7 @@ function CodeEditor({ ydoc, user }) {
 
     const runCode = async () => {
         const code = editor.getValue();
-        const backendUrl = 'http://localhost:3001';
+        const backendUrl = 'https://axlero-backend-1.onrender.com';
         try {
             const response = await fetch(`${backendUrl}/api/execute`, {
                 method: 'POST',
