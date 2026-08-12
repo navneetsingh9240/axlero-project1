@@ -7,7 +7,14 @@ const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-for-dev';
 
 router.post('/register', async (req, res) => {
-    const { username, password } = req.body;
+    const username = typeof 
+    req.body.username === 'string'
+        ? req.body.username.trim()
+        : '';
+    const password = typeof 
+    req.body.password === 'string'
+        ? req.body.password.trim()
+        : '';
     if (
         typeof username !=='string' ||
         typeof password !=='string' ||
