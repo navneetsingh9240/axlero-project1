@@ -7,6 +7,8 @@ function Whiteboard({ user, ydoc, socket, isReadOnly }) {
   const isDrawing = useRef(false);
   const currentShapeId = useRef(null);
 
+  const containerRef = useRef(null);
+  const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
   useEffect(() => {
     const handleResize = () => {
         if (containerRef.current) {
