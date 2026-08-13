@@ -29,6 +29,11 @@ class DocumentModel {
         );
         return result;
     }
+    async conuntDocuments(){
+        return await
+    this.collection.countDocuments();
+    }
+    
 }
 
 module.exports = DocumentModel;
