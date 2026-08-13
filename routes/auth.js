@@ -83,7 +83,11 @@ router.post('/join', async (req, res) => {
             return req.status(400).json({
                 error: 'Invalid role. Use editor or viewer'});
         }
-        
+        if (typeof handle !== 'string' || handle.trim().length<7){
+            return req.status(400).json({
+                error: 'Handle must be at least 7 characters long'
+            })
+        }
 
     try {
         const tempUserId = Math.random().toString(36).substring(2, 15);
