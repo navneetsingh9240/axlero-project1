@@ -23,6 +23,7 @@
     "socket.io-client": "^4.8.3",
     "vite": "^8.1.5",
     "y-monaco": "^0.1.6",
+    "y-webrtc": "^10.3.0",
     "y-websocket": "^3.0.0",
     "yjs": "^13.6.31"
   }
