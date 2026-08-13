@@ -76,32 +76,16 @@ function App() {
     }
   };
 
-  // 1. Workspace View (Inside a Session)
+  // 1. Workspace View
   if (user && activeDocumentId) {
       return (
-          <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#0f172a' }}>
-              <header style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center', 
-                  padding: '12px 24px', 
-                  background: '#1e293b', 
-                  borderBottom: '1px solid #334155' 
-              }}>
+          <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#0f172a' }}>
+              <header style={{ padding: '12px 24px', backgroundColor: '#0f172a', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <h2 style={{ 
-                          margin: 0, 
-                          fontSize: '18px', 
-                          fontWeight: 'bold',
-                          background: 'linear-gradient(135deg, #38bdf8, #818cf8)',
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px'
-                      }}>
-                          <span>✨</span> SyncSpace
-                      </h2>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ color: '#38bdf8', fontSize: '24px' }}>✨</span>
+                          <span className="brand-title" style={{ margin: 0, fontSize: '20px', color: 'white', fontWeight: 'bold' }}>SyncSpace</span>
+                      </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#cbd5e1' }}>
                           <span>— Real-Time Collaboration</span>
                           <div style={{ padding: '4px 8px', background: '#064e3b', color: '#34d399', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -141,6 +125,9 @@ function App() {
                       </button>
                       
                       {/* Active User Avatars */}
+                      <div style={{ marginRight: '8px', fontSize: '13px', color: '#94a3b8', display: 'flex', alignItems: 'center' }}>
+                          👥 {activeUsers.length} user{activeUsers.length !== 1 ? 's' : ''}
+                      </div>
                       <div style={{ display: 'flex', marginLeft: '8px' }}>
                           {activeUsers.map((u, i) => {
                               const colors = ['#d946ef', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
