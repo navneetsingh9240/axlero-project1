@@ -16,6 +16,10 @@ class UserModel {
     async findById(id) {
         return await this.collection.findOne({ _id: new ObjectId(id) });
     }
+    async countUsers(){
+        return await
+    this.collection.countDocuments();
+    }
 
     async createUser(username, passwordHash) {
         const result = await this.collection.insertOne({
