@@ -78,6 +78,7 @@ class YjsSocketServer {
 
         this.io.on('connection', (socket) => {
             const documentId = socket.handshake.query.documentId || 'default';
+            console.log('Client connected: $ {socket.id}, document: ${documentId}');
 
             this.getDoc(documentId).then(ydoc => {
                 const roomName = `doc-${documentId}`;
