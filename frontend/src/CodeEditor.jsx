@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { MonacoBinding } from 'y-monaco';
+import { WebrtcProvider } from 'y-webrtc';
 
 function CodeEditor({ user, ydoc, socket, isReadOnly }) {
   const [isEditorReady, setIsEditorReady] = useState(false);
@@ -15,22 +16,27 @@ function CodeEditor({ user, ydoc, socket, isReadOnly }) {
     if (!isEditorReady || !editorRef.current || !ydoc) return;
 
     if (bindingRef.current) {
-        bindingRef.current.destroy();
+        bindingRef.current.binding.destroy();
+        bindingRef.current.provider.destroy();
     }
 
     const ytext = ydoc.getText('monaco');
 
+    const provider = new WebrtcProvider('syncspace-awareness-room', ydoc, { signaling: [] }); // Dummy provider just for awareness object
     const binding = new MonacoBinding(
       ytext,
       editorRef.current.getModel(),
       new Set([editorRef.current]),
+      provider.awareness
     );
-    bindingRef.current = binding;
+    bindingRef.current = { binding, provider };
+
 
     editorRef.current.updateOptions({ readOnly: isReadOnly });
 
     return () => {
       binding.destroy();
+      provider.destroy();
       bindingRef.current = null;
     };
   }, [isEditorReady, ydoc, isReadOnly]);
