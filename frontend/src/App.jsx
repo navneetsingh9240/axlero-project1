@@ -80,31 +80,39 @@ function App() {
   if (user && activeDocumentId) {
       return (
           <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#0f172a' }}>
-              <header style={{ padding: '12px 24px', backgroundColor: '#0f172a', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ color: '#38bdf8', fontSize: '24px' }}>✨</span>
-                          <span className="brand-title" style={{ margin: 0, fontSize: '20px', color: 'white', fontWeight: 'bold' }}>SyncSpace</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#cbd5e1' }}>
-                          <span>— Real-Time Collaboration</span>
-                          <div style={{ padding: '4px 8px', background: '#064e3b', color: '#34d399', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <div style={{ width: '6px', height: '6px', background: '#34d399', borderRadius: '50%' }}></div>
-                              Yjs CRDT Active
-                          </div>
+              <header style={{ 
+                  backgroundColor: '#1e293b', 
+                  color: 'white', 
+                  padding: '12px 24px', 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  borderBottom: '1px solid #334155',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontSize: '24px' }}>✨</span>
+                      <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', background: 'linear-gradient(to right, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                          SyncSpace
+                      </h1>
+                      <span style={{ color: '#64748b', fontSize: '14px', marginLeft: '8px' }}>— Real-Time Collaboration</span>
+                      
+                      <div style={{ marginLeft: '16px', background: '#064e3b', color: '#34d399', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <div style={{ width: '6px', height: '6px', background: '#34d399', borderRadius: '50%', boxShadow: '0 0 8px #34d399' }}></div>
+                          Yjs CRDT Active
                       </div>
                   </div>
 
-                  <div style={{ display: 'flex', background: '#1e293b', borderRadius: '8px', padding: '4px' }}>
+                  <div style={{ display: 'flex', gap: '4px', background: '#0f172a', padding: '4px', borderRadius: '8px', border: '1px solid #334155' }}>
                       <button 
                           onClick={() => setViewMode('canvas')}
-                          style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '13px', border: 'none', background: viewMode === 'canvas' ? '#6366f1' : 'transparent', color: viewMode === 'canvas' ? 'white' : '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                          style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '13px', border: 'none', background: viewMode === 'canvas' ? '#3b82f6' : 'transparent', color: viewMode === 'canvas' ? 'white' : '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                       >
                           🎨 Canvas
                       </button>
                       <button 
                           onClick={() => setViewMode('split')}
-                          style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '13px', border: 'none', background: viewMode === 'split' ? '#6366f1' : 'transparent', color: viewMode === 'split' ? 'white' : '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                          style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '13px', border: 'none', background: viewMode === 'split' ? '#8b5cf6' : 'transparent', color: viewMode === 'split' ? 'white' : '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                       >
                           ◫ Split View
                       </button>
