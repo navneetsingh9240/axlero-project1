@@ -78,6 +78,12 @@ router.post('/join', async (req, res) => {
     if (!handle || !role || !roomId) {
         return res.status(400).json({ error: 'Handle, role, and roomId are required' });
     }
+    const allowedRoles=['editor','viewer'];
+        if (!allowerdRoles.includes(role)){
+            return req.status(400).json({
+                error: 'Invalid role. Use editor or viewer'});
+        }
+        
 
     try {
         const tempUserId = Math.random().toString(36).substring(2, 15);
