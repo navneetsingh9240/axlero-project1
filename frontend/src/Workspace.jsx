@@ -58,11 +58,13 @@ function Workspace({ user, documentId, isSpectator, viewMode, onActiveUsersChang
     });
 
     newSocket.on('sync-update', (update) => {
-      Y.applyUpdate(newYdoc, new Uint8Array(update), newSocket);
+      console.log('Received sync update');
+      Y.applyUpdate(newYdoc, new Uint8Array(update), 'server');
     });
 
     newYdoc.on('update', (update, origin) => {
-      if (origin !== newSocket && !isSpectator && !isReplaying) {
+      if (origin !== 'server' && !isSpectator && !isReplaying) {
+        console.log('Sending sync update to server');
         newSocket.emit('sync-update', update);
       }
     });
