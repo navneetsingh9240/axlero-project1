@@ -54,16 +54,19 @@ SyncSpace solves this problem by integrating real-time synchronization technolog
 - Yjs WebSocket Server
 
 ---
+
 ## Project Structure
 
+```text
 frontend/
 ├── src/
-├── components/
-├── pages/
-├── hooks/
-├── styles/
-├── assets/
-└── App.jsx/
+│   ├── assets/
+│   ├── components/
+│   ├── hooks/
+│   ├── pages/
+│   ├── styles/
+│   └── App.jsx
+```
 
 ## How It Works
 
